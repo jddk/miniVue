@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+	</head>
+	<body>
+		<div id="app">
+			<p>{{name}}</p>
+			<p>{{age}}</p>
+			<input v-model="name" type="text" />
+			<button @click="changeName">改变</button>
+			<button @click="changeName2">改变w</button>
+		</div>
+		<script>
+			class Vue {
+				constructor(options) {
+					this.$data = options.data();
+					this.$methods = options.methods;
+					this.$mounted = options.mounted;
+					this.$elNode = document.querySelector(options.el);
+					this.$list = {};
+					// 数据代理
+					this.proxy_data();
+
+					// 数据劫持
+					this.observer();
+
+					// 编译器
+					this.compile();
+					if (this.$mounted()) {
+						this.$mounted();
+					}
+				}
+
+				// 数据代理，将data中的数据绑定到this上
+				proxy_data() {
+					Object.keys(this.$data).forEach((item) => {
+						// 检测this上的数据
+						Object.defineProperty(this, item, {
+							get() {
+								return this.$data[item];
+							},
+							set(val) {
+								if (this.$data[item] != val) {
+									this.$data[item] = val;
+								}
+							},
+						});
+					});
+					console.log(this);
+				}
+
+				// 数据劫持，监测到data中的数据的变化，如果是改变就广播修改
+				observer() {
+					let that = this;
+					Object.keys(that.$data).forEach((key) => {
+						defineProperty(that.$data, key, that.$data[key]);
+					});
+					// 检测data中数据
+					function defineProperty(data, key, value) {
+						Object.defineProperty(data, key, {
+							get() {
+								return value;
+							},
+							set(newVal) {
+								if (newVal != value) {
+									value = newVal;
+									that.emit(key);
+								}
+							},
+						});
+					}
+				}
+
+				// 真实DOM转化为文档碎片，在内存中处理提高性能
+				nodeToFragment() {
+					let fragment = document.createDocumentFragment();
+					let nodes = [...this.$elNode.childNodes];
+					nodes.forEach((item) => {
+						fragment.appendChild(item);
+					});
+					return fragment;
+				}
+
+				// 对HTML进行编译，将双括号里的内容替换成data的值，将@xxx的属性绑定对应的事件或方法
+				compile() {
+					let fragment = this.nodeToFragment();
+					let childNodes = fragment.childNodes;
+					let reg = /\{\{(.*)\}\}/;
+					let that = this;
+
+					childNodes.forEach((item) => {
+						if (
+							(item.nodeType === 1 || item.nodeType === 3) &&
+							reg.test(item.textContent)
+						) {
+							let key = item.textContent.replace(reg, `$1`);
+							setText(item, key);
+							// 订阅
+							this.on(key, setText.bind(this, item, key));
+						} else if (item.nodeType === 1) {
+							let nodeAttrs = [...item.attributes];
+							nodeAttrs.forEach((cell) => {
+								if (cell.name.includes("@")) {
+									item.addEventListener(
+										cell.name.substr(1),
+										this.$methods[cell.value].bind(this)
+									);
+								}
+								if (cell.name == "v-model") {
+									item.addEventListener("input", function (e) {
+										that[cell.value] = e.srcElement.value;
+									});
+								}
+							});
+						}
+					});
+					this.$elNode.appendChild(fragment);
+
+					function setText(node, key) {
+						node.textContent = that[key];
+					}
+				}
+
+				// 订阅
+				on(key, fn) {
+					if (!(this.$list[key] instanceof Array)) {
+						this.$list[key] = [];
+					}
+					this.$list[key].push(fn);
+				}
+
+				// 发布
+				emit(key) {
+					this.$list[key].forEach((fn) => {
+						fn();
+					});
+				}
+			}
+		</script>
+		<script>
+			new Vue({
+				el: "#app",
+				data() {
+					return {
+						name: "小明",
+						age: 66,
+					};
+				},
+				mounted() {
+					console.log("mounted", this.name);
+				},
+				methods: {
+					changeName() {
+						this.name = "小红";
+						// this.age = 88
+					},
+					changeName2() {
+						this.name = "第二次修改名字";
+						this.age = "第二次修改年龄";
+					},
+				},
+			});
+		</script>
+	</body>
+</html>
