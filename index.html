@@ -1,7 +1,7 @@
 <!--
  * @name: 
  * @Date: 2020-09-10 19:35:18
- * @LastEditTime: 2020-09-14 15:20:39
+ * @LastEditTime: 2020-09-14 16:40:50
  * @FilePath: \jddk\index.html
  * @permission: 
 -->
@@ -24,23 +24,21 @@
 			import Vue from "./js/jddk.js";
 			new Vue({
 				el: "#app",
-				data() {
-					return {
-						name: "小明",
-						age: 66,
-					};
+				data: {
+					name: "小明",
+					age: 66,
 				},
-				created() {
-					// console.log("created", this.name);
-				},
+				beforeCreate() {},
+				created() {},
 				mounted() {
-					// console.log("mounted", this.name);
+					// console.log(this);
+					this.changeName();
 				},
 				methods: {
 					changeName() {
-						console.log("=========aaa");
 						this.name = "小红";
 						this.age = 88;
+						console.log("888");
 					},
 					changeName2() {
 						this.name = "第二次修改名字";

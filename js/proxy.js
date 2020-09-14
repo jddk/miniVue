@@ -1,7 +1,7 @@
 /*
  * @name:
  * @Date: 2020-09-11 14:25:18
- * @LastEditTime: 2020-09-14 15:17:09
+ * @LastEditTime: 2020-09-14 16:40:37
  * @FilePath: \jddk\js\proxy.js
  * @permission:
  */
@@ -10,20 +10,22 @@
 export default class Porxy_data {
 	constructor(vm) {
 		this.$vm = vm;
-		this.$data = vm.$data;
-		this.proxy_data();
+		// 代理data到this上
+		this.proxy(vm.$data);
+		// 代理methods到this上
+		this.proxy(vm.$methods);
 	}
 
-	proxy_data() {
-		Object.keys(this.$data).forEach((item) => {
+	proxy(obj) {
+		Object.keys(obj).forEach((item) => {
 			// 检测this上的数据
 			Object.defineProperty(this.$vm, item, {
 				get() {
-					return this.$data[item];
+					return obj[item];
 				},
 				set(val) {
-					if (this.$data[item] != val) {
-						this.$data[item] = val;
+					if (obj[item] != val) {
+						obj[item] = val;
 					}
 				},
 			});
