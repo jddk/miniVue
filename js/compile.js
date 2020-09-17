@@ -1,7 +1,7 @@
 /*
  * @name:
  * @Date: 2020-09-11 11:28:14
- * @LastEditTime: 2020-09-14 15:41:06
+ * @LastEditTime: 2020-09-17 15:41:09
  * @FilePath: \jddk\js\compile.js
  * @permission:
  */
@@ -37,9 +37,14 @@ export default class Compile {
 				reg.test(item.textContent)
 			) {
 				let key = item.textContent.replace(reg, `$1`);
+
+				// 在observe里触发get前给window.target全局变量赋值
+				window.target = {
+					update: setText.bind(that, item, key),
+				};
 				setText(item, key);
-				// 订阅
-				that.$on.call(this.$vm, key, setText.bind(that, item, key));
+				// 绑定完依赖后清空
+				window.target = null;
 			} else if (item.nodeType === 1) {
 				let nodeAttrs = [...item.attributes];
 				nodeAttrs.forEach((cell) => {

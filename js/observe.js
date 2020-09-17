@@ -1,7 +1,7 @@
 /*
  * @name:
  * @Date: 2020-09-11 14:22:45
- * @LastEditTime: 2020-09-14 15:27:55
+ * @LastEditTime: 2020-09-17 15:42:31
  * @FilePath: \jddk\js\observe.js
  * @permission:
  */
@@ -10,7 +10,6 @@ export default class Observe {
 	constructor(vm) {
 		this.$vm = vm;
 		this.$data = vm.$data;
-		this.$emit = vm.emit;
 		this.observe();
 	}
 
@@ -21,14 +20,20 @@ export default class Observe {
 		});
 		// 检测data中数据
 		function defineProperty(data, key, value) {
+			let dep = [];
 			Object.defineProperty(data, key, {
 				get() {
+					if (window.target) {
+						dep.push(window.target);
+					}
 					return value;
 				},
 				set(newVal) {
 					if (newVal != value) {
 						value = newVal;
-						that.$emit.call(that.$vm, key);
+						dep.forEach((item) => {
+							item.update();
+						});
 					}
 				},
 			});

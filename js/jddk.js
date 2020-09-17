@@ -1,14 +1,14 @@
 /*
  * @name:
  * @Date: 2020-09-11 11:18:59
- * @LastEditTime: 2020-09-14 16:29:44
+ * @LastEditTime: 2020-09-17 15:41:40
  * @FilePath: \jddk\js\jddk.js
  * @permission:
  */
 import Compile from "./compile.js";
 import Observe from "./observe.js";
 import Proxy from "./proxy.js";
-export default class Vue {
+export default class Jddk {
 	constructor(options) {
 		if (typeof options.data === "function") {
 			this.$data = options.data();
@@ -20,7 +20,6 @@ export default class Vue {
 		this.$beforeCreate = options.beforeCreate;
 		this.$created = options.created;
 		this.$mounted = options.mounted;
-		this.$list = {};
 
 		// beforeCreate生命周期：此时实例刚开始初始化，还没有将data中的数据进行代理，无法使用this.xx获取到data中的数据
 		if (this.$beforeCreate) {
@@ -44,20 +43,5 @@ export default class Vue {
 		if (this.$mounted()) {
 			this.$mounted();
 		}
-	}
-
-	// 订阅
-	on(key, fn) {
-		if (!(this.$list[key] instanceof Array)) {
-			this.$list[key] = [];
-		}
-		this.$list[key].push(fn);
-	}
-
-	// 发布
-	emit(key) {
-		this.$list[key].forEach((fn) => {
-			fn();
-		});
 	}
 }
