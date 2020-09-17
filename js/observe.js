@@ -1,10 +1,11 @@
 /*
  * @name:
  * @Date: 2020-09-11 14:22:45
- * @LastEditTime: 2020-09-17 15:42:31
+ * @LastEditTime: 2020-09-17 15:52:10
  * @FilePath: \jddk\js\observe.js
  * @permission:
  */
+import Dep from "./dep.js";
 //  数据劫持，监测到data中的数据的变化，如果是改变就广播修改
 export default class Observe {
 	constructor(vm) {
@@ -20,20 +21,18 @@ export default class Observe {
 		});
 		// 检测data中数据
 		function defineProperty(data, key, value) {
-			let dep = [];
+			let dep = new Dep();
 			Object.defineProperty(data, key, {
 				get() {
 					if (window.target) {
-						dep.push(window.target);
+						dep.on(window.target);
 					}
 					return value;
 				},
 				set(newVal) {
 					if (newVal != value) {
 						value = newVal;
-						dep.forEach((item) => {
-							item.update();
-						});
+						dep.emit();
 					}
 				},
 			});
